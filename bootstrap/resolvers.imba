@@ -19,6 +19,7 @@ import { TypeScriptPortsServiceResolver } from '@formidablejs/ts-ports'
 import { ViewServiceResolver } from '@formidablejs/view/server'
 import { QueueServiceResolver } from '@formidablejs/queues'
 import { AppServiceResolver } from '../app/Resolvers/AppServiceResolver'
+import { PassportServiceResolver } from '../app/Resolvers/PassportServiceResolver'
 import { RouterServiceResolver } from '../app/Resolvers/RouterServiceResolver'
 import { ValidationServiceResolver } from '../app/Resolvers/ValidationServiceResolver'
 import { PrettyErrorsServiceResolver } from '@formidablejs/pretty-errors'
@@ -58,6 +59,7 @@ export default [
 
 	# Application Service Resolvers...
 	AppServiceResolver
+	PassportServiceResolver
 	RouterServiceResolver
 	ValidationServiceResolver
 ]

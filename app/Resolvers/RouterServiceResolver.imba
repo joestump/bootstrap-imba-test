@@ -8,6 +8,7 @@ export class RouterServiceResolver < ServiceResolver
 		Route.group { middleware: ['session'] }, do
 			Auth.routes!
 
+			require '../../routes/auth'
 			require '../../routes/web'
 
 		Route.group { prefix: 'api', middleware: ['jwt'] }, do

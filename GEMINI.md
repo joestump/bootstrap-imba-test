@@ -168,10 +168,10 @@ This means:
 ### Authentication
 
 - All auth strategies MUST be registered via Passport.js.
-- Supported strategies (to be implemented):
+- Supported strategies:
   - [x] Local (username/password)
-  - [ ] OIDC (OpenID Connect)
-  - [ ] LDAP (Active Directory)
+  - [x] OIDC (OpenID Connect)
+  - [x] LDAP (Active Directory)
 
 ---
 
@@ -187,6 +187,81 @@ This means:
 | 2026-01-08 | Multi-auth `users` table schema       | Flexible user table supporting Local, OIDC, and LDAP via `auth_provider` field |
 | 2026-01-08 | Generic `auth_provider` values        | Use `'local'`, `'oidc'`, `'ldap'` — NOT vendor-specific names like `'google-oidc'` |
 | 2026-01-08 | `UserRepository` with auth helpers    | Repository methods for multi-provider user lookups and creation |
+| 2026-01-08 | `PassportServiceResolver` added       | Central Service Resolver for all Passport.js strategy configuration |
+| 2026-01-08 | `AuthController` added                | Controller handling login, logout, and callbacks for all auth strategies |
+| 2026-01-08 | Auth routes in `/routes/auth.imba`    | Dedicated route file for authentication endpoints |
+| 2026-01-08 | Added passport-local, passport-openidconnect, passport-ldapauth | NPM packages for auth strategies |
+
+---
+
+## Environment Variables
+
+### Authentication Environment Variables
+
+All authentication configuration is done via environment variables. Below is the complete reference:
+
+#### General Auth Settings
+
+| Variable               | Required | Default        | Description                                      |
+|------------------------|----------|----------------|--------------------------------------------------|
+| `AUTH_LOCAL_ENABLED`   | No       | `'true'`       | Enable/disable local (email/password) auth       |
+| `AUTH_SUCCESS_REDIRECT`| No       | `'/'`          | Redirect URL after successful OIDC/external auth |
+| `AUTH_LOGOUT_REDIRECT` | No       | `'/auth/login'`| Redirect URL after logout                        |
+| `AUTH_LOGIN_REDIRECT`  | No       | `'/auth/login'`| Redirect URL when unauthenticated (used by middleware) |
+
+#### OIDC (OpenID Connect) Settings
+
+| Variable                  | Required (if OIDC enabled) | Default                | Description                          |
+|---------------------------|----------------------------|------------------------|--------------------------------------|
+| `OIDC_ENABLED`            | No                         | `'false'`              | Enable/disable OIDC authentication   |
+| `OIDC_ISSUER`             | Yes                        | —                      | OIDC provider issuer URL             |
+| `OIDC_AUTHORIZATION_URL`  | Yes                        | —                      | OIDC authorization endpoint          |
+| `OIDC_TOKEN_URL`          | Yes                        | —                      | OIDC token endpoint                  |
+| `OIDC_USERINFO_URL`       | Yes                        | —                      | OIDC userinfo endpoint               |
+| `OIDC_CLIENT_ID`          | Yes                        | —                      | OIDC client ID                       |
+| `OIDC_CLIENT_SECRET`      | Yes                        | —                      | OIDC client secret                   |
+| `OIDC_CALLBACK_URL`       | No                         | `'/auth/oidc/callback'`| OIDC callback URL (must match provider config) |
+| `OIDC_SCOPE`              | No                         | `'openid profile email'`| Space-separated OIDC scopes          |
+
+#### LDAP Settings
+
+| Variable                       | Required (if LDAP enabled) | Default                | Description                            |
+|--------------------------------|----------------------------|------------------------|----------------------------------------|
+| `LDAP_ENABLED`                 | No                         | `'false'`              | Enable/disable LDAP authentication     |
+| `LDAP_URL`                     | Yes                        | —                      | LDAP server URL (e.g., `ldap://localhost:389`) |
+| `LDAP_BIND_DN`                 | Yes                        | —                      | DN to bind for LDAP searches           |
+| `LDAP_BIND_PASSWORD`           | Yes                        | —                      | Password for bind DN                   |
+| `LDAP_SEARCH_BASE`             | Yes                        | —                      | Base DN for user searches              |
+| `LDAP_SEARCH_FILTER`           | No                         | `'(uid={{username}})'` | LDAP search filter                     |
+| `LDAP_SEARCH_ATTRIBUTES`       | No                         | `'uid,mail,cn,displayName'` | Comma-separated attributes to retrieve |
+| `LDAP_TLS_REJECT_UNAUTHORIZED` | No                         | `'true'`               | Reject unauthorized TLS certificates   |
+| `LDAP_USERNAME_FIELD`          | No                         | `'username'`           | Form field name for LDAP username      |
+| `LDAP_PASSWORD_FIELD`          | No                         | `'password'`           | Form field name for LDAP password      |
+
+### Example `.env` Configuration
+
+```bash
+# Local Auth (enabled by default)
+AUTH_LOCAL_ENABLED=true
+
+# OIDC (e.g., Auth0, Okta, Azure AD)
+OIDC_ENABLED=true
+OIDC_ISSUER=https://your-tenant.auth0.com/
+OIDC_AUTHORIZATION_URL=https://your-tenant.auth0.com/authorize
+OIDC_TOKEN_URL=https://your-tenant.auth0.com/oauth/token
+OIDC_USERINFO_URL=https://your-tenant.auth0.com/userinfo
+OIDC_CLIENT_ID=your-client-id
+OIDC_CLIENT_SECRET=your-client-secret
+OIDC_CALLBACK_URL=http://localhost:3000/auth/oidc/callback
+
+# LDAP (e.g., Active Directory)
+LDAP_ENABLED=true
+LDAP_URL=ldap://ldap.example.com:389
+LDAP_BIND_DN=cn=admin,dc=example,dc=com
+LDAP_BIND_PASSWORD=admin-password
+LDAP_SEARCH_BASE=ou=users,dc=example,dc=com
+LDAP_SEARCH_FILTER=(mail={{username}})
+```
 
 ---
 
@@ -205,6 +280,49 @@ This means:
 - Production database strategy (PostgreSQL migration path)
 - Session storage (in-memory vs. Redis vs. SQLite)
 - Deployment target (Docker, serverless, VPS)
+- Multi-factor authentication (MFA/2FA)
+- Account linking (allowing a user to link multiple auth providers)
+
+---
+
+## Authentication Routes Reference
+
+| Method | Path                  | Handler                     | Description                         |
+|--------|-----------------------|-----------------------------|-------------------------------------|
+| GET    | `/auth/login`         | `AuthController.login-page` | Login page / available providers    |
+| POST   | `/auth/login`         | `AuthController.login`      | Local email/password login          |
+| GET    | `/auth/oidc`          | `AuthController.oidc-login` | Initiate OIDC flow                  |
+| GET    | `/auth/oidc/callback` | `AuthController.oidc-callback` | OIDC provider callback           |
+| POST   | `/auth/ldap`          | `AuthController.ldap-login` | LDAP authentication                 |
+| POST   | `/auth/logout`        | `AuthController.logout`     | Logout (API)                        |
+| GET    | `/auth/logout`        | `AuthController.logout-redirect` | Logout (redirect)              |
+| GET    | `/auth/status`        | `AuthController.status`     | Get current auth status             |
+
+---
+
+## Middleware Reference
+
+### `PassportAuth` Middleware
+
+The `PassportAuth` middleware protects routes by verifying the user is authenticated via Passport.js.
+
+**Alias:** `'passport'`
+
+**Usage in routes:**
+```imba
+# Protect a single route
+Route.get('/dashboard', [DashboardController, 'index']).middleware(['passport'])
+
+# Protect a group of routes
+Route.group { middleware: ['passport'] }, do
+    Route.get('/settings', [SettingsController, 'index'])
+    Route.post('/settings', [SettingsController, 'update'])
+```
+
+**Behavior:**
+- **Authenticated:** Proceeds to the route handler
+- **Unauthenticated API request:** Returns `401 JSON` response
+- **Unauthenticated browser request:** Redirects to `AUTH_LOGIN_REDIRECT` (default: `/auth/login`)
 
 ---
 

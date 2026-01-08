@@ -7,6 +7,7 @@ import { ConvertEmptyStringsToNull } from './Middleware/ConvertEmptyStringsToNul
 import { EnsureEmailIsVerified } from './Middleware/EnsureEmailIsVerified'
 import { EnsureStateless } from './Middleware/EnsureStateless'
 import { ErrorIfAuthenticated } from './Middleware/ErrorIfAuthenticated'
+import { PassportAuth } from './Middleware/PassportAuth'
 import { TrimStrings } from './Middleware/TrimStrings'
 import { VerifyCsrfToken } from './Middleware/VerifyCsrfToken'
 import type { IMiddleware } from '@formidablejs/framework'
@@ -39,6 +40,7 @@ export class Kernel < HttpKernel
 			'csrf': VerifyCsrfToken
 			'guest': ErrorIfAuthenticated
 			'lang': AcceptLanguage
+			'passport': PassportAuth
 			'signed': ValidateSignature
 			'verified': EnsureEmailIsVerified
 		}
