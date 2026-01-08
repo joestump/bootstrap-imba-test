@@ -1,8 +1,12 @@
-import { Middleware } from '@formidablejs/framework'
 import { Request } from '@formidablejs/framework'
 import { Response } from '@formidablejs/framework'
+import { env } from '@formidablejs/framework'
 
-export class PassportAuth < Middleware
+# Create a Response instance for JSON responses
+# This avoids minification issues with static method calls
+const JsonResponse = new Response()
+
+export class PassportAuth
 
 	# --------------------------------------------------------------------------
 	# Passport Authentication Middleware
@@ -20,12 +24,13 @@ export class PassportAuth < Middleware
 			return next(request)
 
 		# Check if this is an API request (expects JSON)
-		const accepts-json = request.header('Accept')?.includes('application/json')
-		const is-xhr = request.header('X-Requested-With') === 'XMLHttpRequest'
+		const acceptHeader = request.header('Accept')
+		const acceptsJson = acceptHeader and acceptHeader.includes('application/json')
+		const isXhr = request.header('X-Requested-With') === 'XMLHttpRequest'
 
-		if accepts-json or is-xhr
+		if acceptsJson or isXhr
 			# Return JSON error for API requests
-			return Response.json({ error: 'Unauthorized. Please log in.' }, 401)
+			return JsonResponse.json({ error: 'Unauthorized. Please log in.' }, 401)
 
 		# Redirect to login page for browser requests
 		Response.redirect(env('AUTH_LOGIN_REDIRECT', '/auth/login'))

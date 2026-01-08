@@ -15,48 +15,48 @@ export class PassportServiceResolver < ServiceResolver
 	def register
 		# Register Passport middleware with the application.
 		# This ensures passport.initialize() and passport.session() are called.
-		app.use passport.initialize!
-		app.use passport.session!
+		# app.use passport.initialize!
+		# app.use passport.session!
 
 	# --------------------------------------------------------------------------
 	# Configuration
 	# --------------------------------------------------------------------------
 
 	# Check if a strategy is enabled via environment variables.
-	def is-local-enabled
-		env('AUTH_LOCAL_ENABLED', 'true') === 'true'
+	def isLocalEnabled
+		(process.env.AUTH_LOCAL_ENABLED || 'true') === 'true'
 
-	def is-oidc-enabled
-		env('OIDC_ENABLED', 'false') === 'true'
+	def isOidcEnabled
+		(process.env.OIDC_ENABLED || 'false') === 'true'
 
-	def is-ldap-enabled
-		env('LDAP_ENABLED', 'false') === 'true'
+	def isLdapEnabled
+		(process.env.LDAP_ENABLED || 'false') === 'true'
 
 	# --------------------------------------------------------------------------
 	# Service Resolver Lifecycle
 	# --------------------------------------------------------------------------
 
 	def boot
-		self.configure-serialization!
-		self.configure-local-strategy! if is-local-enabled!
-		self.configure-oidc-strategy! if is-oidc-enabled!
-		self.configure-ldap-strategy! if is-ldap-enabled!
+		self.configureSerialization!
+		self.configureLocalStrategy! if isLocalEnabled!
+		self.configureOidcStrategy! if isOidcEnabled!
+		self.configureLdapStrategy! if isLdapEnabled!
 
-		console.log '[Passport] Initialized with strategies:', self.get-enabled-strategies!.join(', ')
+		console.log '[Passport] Initialized with strategies:', self.getEnabledStrategies!.join(', ')
 		self
 
-	def get-enabled-strategies
+	def getEnabledStrategies
 		const strategies = []
-		strategies.push('local') if is-local-enabled!
-		strategies.push('oidc') if is-oidc-enabled!
-		strategies.push('ldap') if is-ldap-enabled!
+		strategies.push('local') if isLocalEnabled!
+		strategies.push('oidc') if isOidcEnabled!
+		strategies.push('ldap') if isLdapEnabled!
 		strategies
 
 	# --------------------------------------------------------------------------
 	# Passport Serialization
 	# --------------------------------------------------------------------------
 
-	def configure-serialization
+	def configureSerialization
 		# Serialize user to session (store user ID)
 		passport.serializeUser do(user, done)
 			done(null, user.id)
@@ -64,8 +64,8 @@ export class PassportServiceResolver < ServiceResolver
 		# Deserialize user from session (retrieve full user)
 		passport.deserializeUser do(id, done)
 			try
-				const user-repo = new UserRepository
-				const user = await user-repo.find(id)
+				const userRepo = new UserRepository
+				const user = await userRepo.find(id)
 				done(null, user)
 			catch error
 				done(error, null)
@@ -74,7 +74,7 @@ export class PassportServiceResolver < ServiceResolver
 	# Local Strategy (Username/Password)
 	# --------------------------------------------------------------------------
 
-	def configure-local-strategy
+	def configureLocalStrategy
 		const strategy = new LocalStrategy(
 			{
 				usernameField: 'email'
@@ -82,15 +82,15 @@ export class PassportServiceResolver < ServiceResolver
 			}
 			do(email, password, done)
 				try
-					const user-repo = new UserRepository
-					const user = await user-repo.find-by-email-and-provider(email, 'local')
+					const userRepo = new UserRepository
+					const user = await userRepo.findByEmailAndProvider(email, 'local')
 
 					unless user
 						return done(null, false, { message: 'Invalid email or password.' })
 
-					const is-valid = await Hash.check(password, user.password)
+					const isValid = await Hash.check(password, user.password)
 
-					unless is-valid
+					unless isValid
 						return done(null, false, { message: 'Invalid email or password.' })
 
 					done(null, user)
@@ -104,56 +104,56 @@ export class PassportServiceResolver < ServiceResolver
 	# OIDC Strategy (OpenID Connect)
 	# --------------------------------------------------------------------------
 
-	def configure-oidc-strategy
-		const oidc-config = {
-			issuer: env('OIDC_ISSUER')
-			authorizationURL: env('OIDC_AUTHORIZATION_URL')
-			tokenURL: env('OIDC_TOKEN_URL')
-			userInfoURL: env('OIDC_USERINFO_URL')
-			clientID: env('OIDC_CLIENT_ID')
-			clientSecret: env('OIDC_CLIENT_SECRET')
-			callbackURL: env('OIDC_CALLBACK_URL', '/auth/oidc/callback')
-			scope: env('OIDC_SCOPE', 'openid profile email').split(' ')
+	def configureOidcStrategy
+		const oidcConfig = {
+			issuer: process.env.OIDC_ISSUER
+			authorizationURL: process.env.OIDC_AUTHORIZATION_URL
+			tokenURL: process.env.OIDC_TOKEN_URL
+			userInfoURL: process.env.OIDC_USERINFO_URL
+			clientID: process.env.OIDC_CLIENT_ID
+			clientSecret: process.env.OIDC_CLIENT_SECRET
+			callbackURL: process.env.OIDC_CALLBACK_URL || '/auth/oidc/callback'
+			scope: (process.env.OIDC_SCOPE || 'openid profile email').split(' ')
 		}
 
 		const strategy = new OIDCStrategy(
-			oidc-config
+			oidcConfig
 			do(issuer, profile, done)
-				self.handle-oidc-profile(profile, done)
+				self.handleOidcProfile(profile, done)
 		)
 
 		passport.use('oidc', strategy)
 
-	def handle-oidc-profile profile, done
+	def handleOidcProfile profile, done
 		try
-			const user-repo = new UserRepository
-			const provider-id = profile.id
+			const userRepo = new UserRepository
+			const providerId = profile.id
 			const email = profile.emails?[0]?.value or profile._json?.email
 
 			unless email
 				return done(null, false, { message: 'No email provided by OIDC provider.' })
 
 			# First, try to find by provider ID
-			let user = await user-repo.find-by-provider('oidc', provider-id)
+			let user = await userRepo.findByProvider('oidc', providerId)
 
 			if user
 				return done(null, user)
 
 			# Check if email exists for any provider
-			const existing-user = await user-repo.find-by-email(email)
+			const existingUser = await userRepo.findByEmail(email)
 
-			if existing-user
+			if existingUser
 				# Email already exists with a different provider
 				return done(null, false, {
 					message: 'An account with this email already exists using a different login method.'
 				})
 
 			# Create new OIDC user
-			user = await user-repo.create-oidc-user({
+			user = await userRepo.createOidcUser({
 				email: email
 				name: profile.displayName or "{profile.name?.givenName} {profile.name?.familyName}".trim!
 				email_verified_at: new Date!
-			}, provider-id)
+			}, providerId)
 
 			done(null, user)
 		catch error
@@ -163,63 +163,63 @@ export class PassportServiceResolver < ServiceResolver
 	# LDAP Strategy (Active Directory)
 	# --------------------------------------------------------------------------
 
-	def configure-ldap-strategy
-		const ldap-config = {
+	def configureLdapStrategy
+		const ldapConfig = {
 			server: {
-				url: env('LDAP_URL')
-				bindDN: env('LDAP_BIND_DN')
-				bindCredentials: env('LDAP_BIND_PASSWORD')
-				searchBase: env('LDAP_SEARCH_BASE')
-				searchFilter: env('LDAP_SEARCH_FILTER', '(uid={{username}})')
-				searchAttributes: env('LDAP_SEARCH_ATTRIBUTES', 'uid,mail,cn,displayName').split(',')
+				url: process.env.LDAP_URL
+				bindDN: process.env.LDAP_BIND_DN
+				bindCredentials: process.env.LDAP_BIND_PASSWORD
+				searchBase: process.env.LDAP_SEARCH_BASE
+				searchFilter: process.env.LDAP_SEARCH_FILTER || '(uid={{username}})'
+				searchAttributes: (process.env.LDAP_SEARCH_ATTRIBUTES || 'uid,mail,cn,displayName').split(',')
 				tlsOptions: {
-					rejectUnauthorized: env('LDAP_TLS_REJECT_UNAUTHORIZED', 'true') === 'true'
+					rejectUnauthorized: (process.env.LDAP_TLS_REJECT_UNAUTHORIZED || 'true') === 'true'
 				}
 			}
-			usernameField: env('LDAP_USERNAME_FIELD', 'username')
-			passwordField: env('LDAP_PASSWORD_FIELD', 'password')
+			usernameField: process.env.LDAP_USERNAME_FIELD || 'username'
+			passwordField: process.env.LDAP_PASSWORD_FIELD || 'password'
 		}
 
 		const strategy = new LDAPStrategy(
-			ldap-config
-			do(ldap-user, done)
-				self.handle-ldap-user(ldap-user, done)
+			ldapConfig
+			do(ldapUser, done)
+				self.handleLdapUser(ldapUser, done)
 		)
 
 		passport.use('ldap', strategy)
 
-	def handle-ldap-user ldap-user, done
+	def handleLdapUser ldapUser, done
 		try
-			const user-repo = new UserRepository
+			const userRepo = new UserRepository
 
 			# The DN (Distinguished Name) is used as the provider ID
-			const provider-id = ldap-user.dn or ldap-user.uid
-			const email = ldap-user.mail or ldap-user.email
-			const name = ldap-user.displayName or ldap-user.cn or ldap-user.uid
+			const providerId = ldapUser.dn or ldapUser.uid
+			const email = ldapUser.mail or ldapUser.email
+			const name = ldapUser.displayName or ldapUser.cn or ldapUser.uid
 
 			unless email
 				return done(null, false, { message: 'No email found in LDAP response.' })
 
 			# First, try to find by provider ID
-			let user = await user-repo.find-by-provider('ldap', provider-id)
+			let user = await userRepo.findByProvider('ldap', providerId)
 
 			if user
 				return done(null, user)
 
 			# Check if email exists for any provider
-			const existing-user = await user-repo.find-by-email(email)
+			const existingUser = await userRepo.findByEmail(email)
 
-			if existing-user
+			if existingUser
 				return done(null, false, {
 					message: 'An account with this email already exists using a different login method.'
 				})
 
 			# Create new LDAP user
-			user = await user-repo.create-ldap-user({
+			user = await userRepo.createLdapUser({
 				email: email
 				name: name
 				email_verified_at: new Date!
-			}, provider-id)
+			}, providerId)
 
 			done(null, user)
 		catch error
@@ -230,7 +230,7 @@ export class PassportServiceResolver < ServiceResolver
 	# --------------------------------------------------------------------------
 
 	# Get the passport instance for use in routes/middleware.
-	static def get-passport
+	static def getPassport
 		passport
 
 	# Authenticate with a specific strategy.

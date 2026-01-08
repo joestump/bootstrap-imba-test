@@ -13,7 +13,7 @@ import { AuthController } from '../app/Http/Controllers/AuthController'
 # --------------------------------------------------------------------------
 
 # Display login page or return available providers.
-Route.get('/auth/login', [AuthController, 'login-page'])
+Route.get('/auth/login', [AuthController, 'loginPage'])
 
 # Get current authentication status.
 Route.get('/auth/status', [AuthController, 'status'])
@@ -30,17 +30,17 @@ Route.post('/auth/login', [AuthController, 'login'])
 # --------------------------------------------------------------------------
 
 # Initiate OIDC login flow (redirects to provider).
-Route.get('/auth/oidc', [AuthController, 'oidc-login'])
+Route.get('/auth/oidc', [AuthController, 'oidcLogin'])
 
 # Handle OIDC callback after provider authentication.
-Route.get('/auth/oidc/callback', [AuthController, 'oidc-callback'])
+Route.get('/auth/oidc/callback', [AuthController, 'oidcCallback'])
 
 # --------------------------------------------------------------------------
 # LDAP Authentication
 # --------------------------------------------------------------------------
 
 # Handle LDAP login form submission.
-Route.post('/auth/ldap', [AuthController, 'ldap-login'])
+Route.post('/auth/ldap', [AuthController, 'ldapLogin'])
 
 # --------------------------------------------------------------------------
 # Logout
@@ -50,4 +50,4 @@ Route.post('/auth/ldap', [AuthController, 'ldap-login'])
 Route.post('/auth/logout', [AuthController, 'logout'])
 
 # Log out via GET (redirect-based for links).
-Route.get('/auth/logout', [AuthController, 'logout-redirect'])
+Route.get('/auth/logout', [AuthController, 'logoutRedirect'])

@@ -7,7 +7,7 @@ export default {
 	# messages to the logs. The name specified in this option should match
 	# one of the channels defined in the "channels" configuration array.
 
-	default: env('LOG_CHANNEL', 'stack')
+	default: process.env.LOG_CHANNEL || 'stack'
 
 	# --------------------------------------------------------------------------
 	#  Log Mode
@@ -22,7 +22,7 @@ export default {
 	#
 	# Supported modes: "async", "sync"
 
-	mode: env('LOG_MODE', 'sync')
+	mode: process.env.LOG_MODE || 'sync'
 
 	# --------------------------------------------------------------------------
 	#  Log Channels
@@ -42,36 +42,36 @@ export default {
 
 		console: {
 			driver: 'console'
-			level: env('LOG_LEVEL', 'debug')
+			level: process.env.LOG_LEVEL || 'debug'
 		}
 
 		single: {
 			driver: 'single'
 			path: 'storage/logs/formidable.log'
-			level: env('LOG_LEVEL', 'debug')
+			level: process.env.LOG_LEVEL || 'debug'
 		}
 
 		daily: {
 			driver: 'daily'
 			path: 'storage/logs/formidable.log'
-			level: env('LOG_LEVEL', 'debug')
+			level: process.env.LOG_LEVEL || 'debug'
 			maxFiles: 14
 			threshold: 'day'
 		}
 
 		slack: {
 			driver: 'slack'
-			url: env('LOG_SLACK_WEBHOOK_URL')
+			url: process.env.LOG_SLACK_WEBHOOK_URL
 			username: 'Formidable Log'
 			iconEmoji: ':boom:'
-			level: env('LOG_LEVEL', 'critical')
+			level: process.env.LOG_LEVEL || 'critical'
 		}
 
 		discord: {
 			driver: 'discord'
-			url: env('LOG_DISCORD_WEBHOOK_URL')
+			url: process.env.LOG_DISCORD_WEBHOOK_URL
 			username: 'Formidable Log'
-			level: env('LOG_LEVEL', 'critical')
+			level: process.env.LOG_LEVEL || 'critical'
 		}
 	}
 }

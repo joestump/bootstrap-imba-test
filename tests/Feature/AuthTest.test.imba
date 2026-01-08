@@ -6,29 +6,30 @@ import { TestCase, UserFactory } from '../TestCase.imba'
 # --------------------------------------------------------------------------
 # Tests for auth logic including UserFactory and UserRepository patterns.
 #
-# NOTE: HTTP integration tests are skipped pending proper Formidable app
-# bootstrapping in the Vitest environment. The UserFactory unit tests
-# demonstrate the testing patterns for this stack.
+# NOTE: HTTP integration tests use the TestCase helper which bootstraps
+# the Formidable app.
 
 describe 'Authentication', do
 	const tc = new TestCase
 
+	beforeAll do await tc.setup!
+	afterAll do await tc.teardown!
+	beforeEach do tc.reset!
+
 	# --------------------------------------------------------------------------
-	# HTTP Integration Tests (Skipped)
+	# HTTP Integration Tests
 	# --------------------------------------------------------------------------
-	# These tests require the full Formidable app to be bootstrapped with routes.
-	# They are skipped until the test environment properly registers routes.
 
 	describe 'GET /auth/status', do
 
-		it.skip 'returns unauthenticated status for guests', do
+		it 'returns unauthenticated status for guests', do
 			const res = await tc.get('/auth/status')
 
 			expect(res.status).toBe(200)
 			expect(res.body).toHaveProperty('authenticated', false)
 			expect(res.body).toHaveProperty('user', null)
 
-		it.skip 'returns authenticated status with user data when logged in', do
+		it 'returns authenticated status with user data when logged in', do
 			const user = UserFactory.createLocal({ email: 'auth@example.com' })
 			tc.actingAs(user)
 
@@ -40,7 +41,7 @@ describe 'Authentication', do
 
 	describe 'GET /auth/login', do
 
-		it.skip 'returns available auth providers', do
+		it 'returns available auth providers', do
 			const res = await tc.get('/auth/login')
 
 			expect(res.status).toBe(200)
@@ -51,13 +52,13 @@ describe 'Authentication', do
 
 	describe 'POST /auth/login (Local)', do
 
-		it.skip 'rejects login with missing credentials', do
+		it 'rejects login with missing credentials', do
 			const res = await tc.post('/auth/login', {})
 
 			expect(res.status).toBe(401)
 			expect(res.body).toHaveProperty('error')
 
-		it.skip 'rejects login with invalid email', do
+		it 'rejects login with invalid email', do
 			const res = await tc.post('/auth/login', {
 				email: 'nonexistent@example.com'
 				password: 'password123'
@@ -68,7 +69,7 @@ describe 'Authentication', do
 
 	describe 'GET /auth/oidc', do
 
-		it.skip 'returns error when OIDC is disabled', do
+		it 'returns error when OIDC is disabled', do
 			const res = await tc.get('/auth/oidc')
 
 			expect(res.status).toBe(400)
@@ -76,7 +77,7 @@ describe 'Authentication', do
 
 	describe 'POST /auth/ldap', do
 
-		it.skip 'returns error when LDAP is disabled', do
+		it 'returns error when LDAP is disabled', do
 			const res = await tc.post('/auth/ldap', {
 				username: 'ldapuser'
 				password: 'ldappassword'
@@ -87,7 +88,7 @@ describe 'Authentication', do
 
 	describe 'POST /auth/logout', do
 
-		it.skip 'logs out the user successfully', do
+		it 'logs out the user successfully', do
 			const res = await tc.post('/auth/logout')
 
 			expect(res.status).toBe(200)
@@ -110,18 +111,18 @@ describe 'UserRepository Data Structures', do
 				password: 'hashed_password'
 			}
 
-			# Simulate what create-local-user does
-			const user-data = {
+			# Simulate what createLocalUser does
+			const userData = {
 				...input
 				auth_provider: 'local'
 				auth_provider_id: null
 			}
 
-			expect(user-data.email).toBe('local@example.com')
-			expect(user-data.name).toBe('Local User')
-			expect(user-data.auth_provider).toBe('local')
-			expect(user-data.auth_provider_id).toBeNull!
-			expect(user-data.password).toBe('hashed_password')
+			expect(userData.email).toBe('local@example.com')
+			expect(userData.name).toBe('Local User')
+			expect(userData.auth_provider).toBe('local')
+			expect(userData.auth_provider_id).toBeNull!
+			expect(userData.password).toBe('hashed_password')
 
 	describe 'OIDC User Data', do
 
@@ -130,56 +131,56 @@ describe 'UserRepository Data Structures', do
 				email: 'oidc@example.com'
 				name: 'OIDC User'
 			}
-			const provider-id = 'oidc-sub-12345'
+			const providerId = 'oidc-sub-12345'
 
-			# Simulate what create-oidc-user does
-			const user-data = {
+			# Simulate what createOidcUser does
+			const userData = {
 				...input
 				auth_provider: 'oidc'
-				auth_provider_id: provider-id
+				auth_provider_id: providerId
 				password: null
 			}
 
-			expect(user-data.email).toBe('oidc@example.com')
-			expect(user-data.name).toBe('OIDC User')
-			expect(user-data.auth_provider).toBe('oidc')
-			expect(user-data.auth_provider_id).toBe('oidc-sub-12345')
-			expect(user-data.password).toBeNull!
+			expect(userData.email).toBe('oidc@example.com')
+			expect(userData.name).toBe('OIDC User')
+			expect(userData.auth_provider).toBe('oidc')
+			expect(userData.auth_provider_id).toBe('oidc-sub-12345')
+			expect(userData.password).toBeNull!
 
 		it 'stores the OIDC sub claim as auth_provider_id', do
-			const oidc-sub = 'google-oauth2|123456789'
+			const oidcSub = 'google-oauth2|123456789'
 
-			const user-data = {
+			const userData = {
 				email: 'test@example.com'
 				auth_provider: 'oidc'
-				auth_provider_id: oidc-sub
+				auth_provider_id: oidcSub
 				password: null
 			}
 
-			expect(user-data.auth_provider_id).toBe('google-oauth2|123456789')
+			expect(userData.auth_provider_id).toBe('google-oauth2|123456789')
 
 	describe 'LDAP User Data', do
 
 		it 'builds correct data structure for LDAP users', do
-			const ldap-dn = 'cn=jsmith,ou=users,dc=example,dc=com'
+			const ldapDn = 'cn=jsmith,ou=users,dc=example,dc=com'
 			const input = {
 				email: 'jsmith@example.com'
 				name: 'John Smith'
 			}
 
-			# Simulate what create-ldap-user does
-			const user-data = {
+			# Simulate what createLdapUser does
+			const userData = {
 				...input
 				auth_provider: 'ldap'
-				auth_provider_id: ldap-dn
+				auth_provider_id: ldapDn
 				password: null
 			}
 
-			expect(user-data.email).toBe('jsmith@example.com')
-			expect(user-data.name).toBe('John Smith')
-			expect(user-data.auth_provider).toBe('ldap')
-			expect(user-data.auth_provider_id).toBe(ldap-dn)
-			expect(user-data.password).toBeNull!
+			expect(userData.email).toBe('jsmith@example.com')
+			expect(userData.name).toBe('John Smith')
+			expect(userData.auth_provider).toBe('ldap')
+			expect(userData.auth_provider_id).toBe(ldapDn)
+			expect(userData.password).toBeNull!
 
 # --------------------------------------------------------------------------
 # Auth Provider Values Tests
@@ -189,34 +190,34 @@ describe 'UserRepository Data Structures', do
 describe 'Auth Provider Conventions', do
 
 	it 'uses simple lowercase strings for auth_provider', do
-		const valid-providers = ['local', 'oidc', 'ldap']
+		const validProviders = ['local', 'oidc', 'ldap']
 
-		for provider in valid-providers
+		for provider in validProviders
 			expect(provider).toMatch(/^[a-z]+$/)
 			expect(provider).not.toContain('-')
 			expect(provider).not.toContain('_')
 
 	it 'does NOT use vendor-specific names', do
-		const invalid-providers = ['google-oidc', 'azure-ad', 'okta', 'auth0']
+		const invalidProviders = ['google-oidc', 'azure-ad', 'okta', 'auth0']
 
-		for provider in invalid-providers
+		for provider in invalidProviders
 			expect(['local', 'oidc', 'ldap']).not.toContain(provider)
 
 	it 'local provider has null auth_provider_id', do
-		const local-user = UserFactory.createLocal!
-		expect(local-user.auth_provider).toBe('local')
-		expect(local-user.auth_provider_id).toBeNull!
+		const localUser = UserFactory.createLocal!
+		expect(localUser.auth_provider).toBe('local')
+		expect(localUser.auth_provider_id).toBeNull!
 
 	it 'oidc provider has non-null auth_provider_id', do
-		const oidc-user = UserFactory.createOidc!
-		expect(oidc-user.auth_provider).toBe('oidc')
-		expect(oidc-user.auth_provider_id).not.toBeNull!
+		const oidcUser = UserFactory.createOidc!
+		expect(oidcUser.auth_provider).toBe('oidc')
+		expect(oidcUser.auth_provider_id).not.toBeNull!
 
 	it 'ldap provider has non-null auth_provider_id (DN)', do
-		const ldap-user = UserFactory.createLdap!
-		expect(ldap-user.auth_provider).toBe('ldap')
-		expect(ldap-user.auth_provider_id).not.toBeNull!
-		expect(ldap-user.auth_provider_id).toContain('cn=')
+		const ldapUser = UserFactory.createLdap!
+		expect(ldapUser.auth_provider).toBe('ldap')
+		expect(ldapUser.auth_provider_id).not.toBeNull!
+		expect(ldapUser.auth_provider_id).toContain('cn=')
 
 # --------------------------------------------------------------------------
 # UserFactory Tests

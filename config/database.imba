@@ -8,7 +8,7 @@ export default {
 	# to use as your default connection for all database work. Of course
 	# you may use many connections at once using the Database library.
 
-	default: env 'DB_CONNECTION', 'mysql'
+	default: process.env.DB_CONNECTION || 'sqlite'
 
 	# --------------------------------------------------------------------------
 	# Database Connections
@@ -20,39 +20,39 @@ export default {
 	connections: {
 		sqlite: {
 			driver: 'sqlite3'
-			filename: env 'DATABASE_URL'
+			filename: process.env.DATABASE_URL || process.env.DB_FILE || './database/database.sqlite'
 		}
 
 		mysql: {
 			driver: 'mysql2'
-			url: env 'DATABASE_URL'
-			host: env 'DB_HOST', '127.0.0.1'
-			port: env 'DB_PORT', '3306'
-			user: env 'DB_USER', ''
-			database: env 'DB_DATABASE', ''
-			password: env 'DB_PASSWORD', ''
+			url: process.env.DATABASE_URL
+			host: process.env.DB_HOST || '127.0.0.1'
+			port: process.env.DB_PORT || '3306'
+			user: process.env.DB_USER || ''
+			database: process.env.DB_DATABASE || ''
+			password: process.env.DB_PASSWORD || ''
 			charset: 'utf8mb4'
 		}
 
 		pgsql: {
 			driver: 'pg'
-			url: env 'DATABASE_URL'
-			host: env 'DB_HOST', '127.0.0.1'
-			port: env 'DB_PORT', '5432'
-			user: env 'DB_USER', ''
-			database: env 'DB_DATABASE', ''
-			password: env 'DB_PASSWORD', ''
+			url: process.env.DATABASE_URL
+			host: process.env.DB_HOST || '127.0.0.1'
+			port: process.env.DB_PORT || '5432'
+			user: process.env.DB_USER || ''
+			database: process.env.DB_DATABASE || ''
+			password: process.env.DB_PASSWORD || ''
 			charset: 'utf8'
 		}
 
 		mssql: {
 			driver: 'tedious'
-			url: env 'DATABASE_URL'
-			host: env 'DB_HOST', '127.0.0.1'
-			port: env 'DB_PORT', '5432'
-			user: env 'DB_USER', ''
-			database: env 'DB_DATABASE', ''
-			password: env 'DB_PASSWORD', ''
+			url: process.env.DATABASE_URL
+			host: process.env.DB_HOST || '127.0.0.1'
+			port: process.env.DB_PORT || '5432'
+			user: process.env.DB_USER || ''
+			database: process.env.DB_DATABASE || ''
+			password: process.env.DB_PASSWORD || ''
 			charset: 'utf8'
 		}
 	}
@@ -91,31 +91,31 @@ export default {
 
 	redis: {
 		options: {
-			prefix: env 'REDIS_PREFIX', slug(env('APP_NAME', 'formidable'), '_') + '_database_'
+			prefix: process.env.REDIS_PREFIX || slug((process.env.APP_NAME || 'formidable'), '_') + '_database_'
 		}
 
 		default: {
-			url: env 'REDIS_URL'
-			host: env 'REDIS_HOST', '127.0.0.1'
-			password: env 'REDIS_PASSWORD', null
-			port: env 'REDIS_PORT', '6379'
-			database: env 'REDIS_DB', '0'
+			url: process.env.REDIS_URL
+			host: process.env.REDIS_HOST || '127.0.0.1'
+			password: process.env.REDIS_PASSWORD || null
+			port: process.env.REDIS_PORT || '6379'
+			database: process.env.REDIS_DB || '0'
 		}
 
 		cache: {
-			url: env 'REDIS_URL'
-			host: env 'REDIS_HOST', '127.0.0.1'
-			password: env 'REDIS_PASSWORD', null
-			port: env 'REDIS_PORT', '6379'
-			database: env 'REDIS_CACHE_DB', '1'
+			url: process.env.REDIS_URL
+			host: process.env.REDIS_HOST || '127.0.0.1'
+			password: process.env.REDIS_PASSWORD || null
+			port: process.env.REDIS_PORT || '6379'
+			database: process.env.REDIS_CACHE_DB || '1'
 		}
 
 		queue: {
-			url: env 'REDIS_URL'
-			host: env 'REDIS_HOST', '127.0.0.1'
-			password: env 'REDIS_PASSWORD', null
-			port: env 'REDIS_PORT', '6379'
-			database: env 'REDIS_CACHE_DB', '2'
+			url: process.env.REDIS_URL
+			host: process.env.REDIS_HOST || '127.0.0.1'
+			password: process.env.REDIS_PASSWORD || null
+			port: process.env.REDIS_PORT || '6379'
+			database: process.env.REDIS_CACHE_DB || '2'
 		}
 	}
 

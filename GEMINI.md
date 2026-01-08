@@ -198,6 +198,11 @@ This means:
 | 2026-01-08 | `Dashboard.imba` frontend view             | Protected dashboard with user info and stats cards using Imba native CSS |
 | 2026-01-08 | Server-side `/dashboard` protection        | `/dashboard` route protected with `passport` middleware in `web.imba` |
 | 2026-01-08 | Gradient-based UI theme                    | Primary gradient: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` |
+| 2026-01-08 | Default database changed to SQLite         | MySQL was causing module errors; SQLite is zero-config |
+| 2026-01-08 | CamelCase for route-bound methods          | Imba compiles kebab-case to Unicode (Ξ), breaking string-based route bindings |
+| 2026-01-08 | Formidable middleware has no `next()`      | Unlike Express, return nothing to continue; signature is `handle(request, reply, params)` |
+| 2026-01-08 | `Response.json` via instance pattern       | Use `new Response().json()` to avoid minification issues with static method calls |
+| 2026-01-08 | Repository uses `self.table` not `self.query` | Formidable Repository API exposes `table` getter, not `query()` method |
 
 ---
 

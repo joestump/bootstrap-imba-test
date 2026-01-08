@@ -4,5 +4,8 @@ export class VerifyCsrfToken < Middleware
 
 	get except
 		[
-
+			'/auth/login'
+			'/auth/ldap'
+			'/auth/logout'
+			'/auth/oidc/callback'
 		]

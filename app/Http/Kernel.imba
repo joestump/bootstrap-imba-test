@@ -7,7 +7,9 @@ import { ConvertEmptyStringsToNull } from './Middleware/ConvertEmptyStringsToNul
 import { EnsureEmailIsVerified } from './Middleware/EnsureEmailIsVerified'
 import { EnsureStateless } from './Middleware/EnsureStateless'
 import { ErrorIfAuthenticated } from './Middleware/ErrorIfAuthenticated'
+import { InitPassport } from './Middleware/InitPassport'
 import { PassportAuth } from './Middleware/PassportAuth'
+import { TestAuthMiddleware } from './Middleware/TestAuthMiddleware'
 import { TrimStrings } from './Middleware/TrimStrings'
 import { VerifyCsrfToken } from './Middleware/VerifyCsrfToken'
 import type { IMiddleware } from '@formidablejs/framework'
@@ -21,6 +23,8 @@ export class Kernel < HttpKernel
 			HasEncryptionKey
 			TrimStrings
 			ConvertEmptyStringsToNull
+			# InitPassport
+			TestAuthMiddleware
 		]
 
 	get middlewareGroups\MiddlewareGroups

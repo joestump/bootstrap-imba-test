@@ -9,7 +9,7 @@ export default {
 	# This api key points the Bugsnag notifier to the project in your account
 	# which should receive your application's uncaught exceptions.
 
-	api_key: env('BUGSNAG_API_KEY', '')
+	api_key: process.env.BUGSNAG_API_KEY || ''
 
 	# --------------------------------------------------------------------------
 	# App Type
@@ -17,7 +17,7 @@ export default {
 	#
 	# Set the type of application executing the current code.
 
-	app_type: env('BUGSNAG_APP_TYPE')
+	app_type: process.env.BUGSNAG_APP_TYPE
 
 	# --------------------------------------------------------------------------
 	# App Version
@@ -25,7 +25,7 @@ export default {
 	#
 	# Set the version of application executing the current code.
 
-	app_version: env('BUGSNAG_APP_VERSION')
+	app_version: process.env.BUGSNAG_APP_VERSION
 
 	# --------------------------------------------------------------------------
 	# Notify Endpoint
@@ -35,7 +35,7 @@ export default {
 	# this is set to 'https://notify.bugsnag.com', but for Bugsnag Enterprise
 	# this should be the URL to your Bugsnag instance.
 
-	endpoint: env('BUGSNAG_ENDPOINT')
+	endpoint: process.env.BUGSNAG_ENDPOINT
 
 	# --------------------------------------------------------------------------
 	# Hostname
@@ -44,7 +44,7 @@ export default {
 	# You can set the hostname of your server to something specific for you to
 	# identify it by if needed.
 
-	hostname: env('BUGSNAG_HOSTNAME')
+	hostname: process.env.BUGSNAG_HOSTNAME
 
 	# --------------------------------------------------------------------------
 	# Project Root
@@ -55,7 +55,7 @@ export default {
 	#
 	# If this is not set, we will automatically try to detect it.
 
-	project_root: env('BUGSNAG_PROJECT_ROOT')
+	project_root: process.env.BUGSNAG_PROJECT_ROOT
 
 	# --------------------------------------------------------------------------
 	# Query
@@ -64,7 +64,7 @@ export default {
 	# Enable this if you'd like us to automatically record all queries executed
 	# under the "QUERY" tab.
 
-	query: env('BUGSNAG_QUERY', true)
+	query: process.env.BUGSNAG_QUERY || true
 
 	# --------------------------------------------------------------------------
 	# Bindings
@@ -73,7 +73,7 @@ export default {
 	# Enable this if you'd like us to include the query bindings in our "QUERY"
 	# tab.
 
-	bindings: env('BUGSNAG_QUERY_BINDINGS', false)
+	bindings: process.env.BUGSNAG_QUERY_BINDINGS || false
 
 	# --------------------------------------------------------------------------
 	# Send Code
@@ -83,7 +83,7 @@ export default {
 	# help you diagnose even faster from within your dashboard. If you don’t
 	# want to send this snippet, then set this to false.
 
-	send_code: env('BUGSNAG_SEND_CODE', true)
+	send_code: process.env.BUGSNAG_SEND_CODE || true
 
 	# --------------------------------------------------------------------------
 	# Send Code
@@ -97,7 +97,7 @@ export default {
 	# Bugsnag.registerCallback method from the boot method of your app
 	# service resolver.
 
-	callbacks: env('BUGSNAG_CALLBACKS', true)
+	callbacks: process.env.BUGSNAG_CALLBACKS || true
 
 	# --------------------------------------------------------------------------
 	# Release Stage
@@ -107,7 +107,7 @@ export default {
 	#
 	# Leaving this unset will default to using the application environment.
 
-	release_stage: env('BUGSNAG_RELEASE_STAGE')
+	release_stage: process.env.BUGSNAG_RELEASE_STAGE
 
 	# --------------------------------------------------------------------------
 	# Notify Release Stages
@@ -115,7 +115,7 @@ export default {
 	#
 	# Set which release stages should send notifications to Bugsnag.
 
-	notify_release_stages: isEmpty(env('BUGSNAG_NOTIFY_RELEASE_STAGES')) ? null : env('BUGSNAG_NOTIFY_RELEASE_STAGES').replace(/\s/g, '').split(',')
+	notify_release_stages: isEmpty(process.env.BUGSNAG_NOTIFY_RELEASE_STAGES) ? null : process.env.BUGSNAG_NOTIFY_RELEASE_STAGES.replace(/\s/g, '').split(',')
 
 	# --------------------------------------------------------------------------
 	# User
@@ -124,7 +124,7 @@ export default {
 	# Enable this if you'd like us to set the current user logged in via
 	# Formidable's authentication system.
 
-	user: env('BUGSNAG_USER', true)
+	user: process.env.BUGSNAG_USER || true
 
 	# --------------------------------------------------------------------------
 	# Redacted Keys
@@ -132,6 +132,6 @@ export default {
 	#
 	# An array of metadata keys that should be redacted.
 
-	redacted_keys: isEmpty(env('BUGSNAG_REDACTED_KEYS')) ? null : env('BUGSNAG_REDACTED_KEYS').split(',')
+	redacted_keys: isEmpty(process.env.BUGSNAG_REDACTED_KEYS) ? null : process.env.BUGSNAG_REDACTED_KEYS.split(',')
 
 }
