@@ -1,23 +1,100 @@
-## About Formidable
-Formidable is a Imba Framework for Rapid API and Full-Stack Development.
+# Bootstrap Imba Test
 
-![Core](https://github.com/formidablejs/framework/actions/workflows/0-core-test.yml/badge.svg)
-![E2E](https://github.com/formidablejs/framework/actions/workflows/1-e2e-test.yml/badge.svg)
-![npm](https://img.shields.io/npm/v/@formidablejs/framework)
-![GitHub](https://img.shields.io/github/license/formidablejs/framework)
+A full-stack application built with the [Formidable](https://formidablejs.org/) framework and [Imba](https://imba.io/) language.
 
-## Contributing
+## 🛠 Tech Stack
 
-Thank you for considering contributing to the Formidable framework! The contribution guide can be found in the [Formidable documentation](https://www.formidablejs.org/docs/contributions).
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Framework** | Formidable | Full-stack Node.js framework |
+| **Language** | Imba | Unified language for server and client |
+| **Database** | SQLite | Local database (managed via Craftsman) |
+| **Auth** | Passport.js | Local, OIDC, and LDAP strategies |
+| **Frontend** | Imba | Imba Router & Native Imba CSS |
+| **Testing** | Vitest | Unit and integration testing |
 
-## Code of Conduct
+## 🚀 Local Development
 
-In order to ensure that the Formidable community is welcoming to all, please review and abide by the [Code of Conduct](https://www.formidablejs.org/docs/contributions#code-of-conduct).
+### Prerequisites
 
-## Security Vulnerabilities
+- Node.js (LTS recommended)
+- npm
 
-If you discover a security vulnerability within Formidable, please send an e-mail to Donald Pakkies via [donaldpakkies@gmail.com](mailto:donaldpakkies@gmail.com). All security vulnerabilities will be promptly addressed.
+### Installation
 
-## License
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd bootstrap-imba-test
+   ```
 
-The Formidable framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+### Configuration
+
+1. Create a `.env` file in the project root.
+2. Generate an application key:
+   ```bash
+   node craftsman key:generate
+   ```
+3. Configure your environment variables. Refer to [GEMINI.md](./GEMINI.md#environment-variables) for detailed authentication configuration (OIDC, LDAP, etc.).
+
+   **Minimal `.env` example:**
+   ```ini
+   APP_NAME=Formidable
+   APP_ENV=local
+   APP_DEBUG=true
+   APP_URL=http://localhost:3000
+   
+   DB_CONNECTION=sqlite
+   DB_DATABASE=database/database.sqlite
+   
+   AUTH_LOCAL_ENABLED=true
+   ```
+
+### Database Setup
+
+Initialize the SQLite database and run migrations:
+
+```bash
+# Run migrations to create tables
+node craftsman migrate
+
+# Seed the database with initial data (optional)
+node craftsman db:seed
+```
+
+### Running the Application
+
+**Development Mode:**
+Starts the server with hot-reloading for both server and client code.
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:3000`.
+
+**Production Mode:**
+Build and serve the application for production use.
+```bash
+npm run build
+npm run serve
+```
+
+### Testing
+
+Run the test suite using Vitest:
+
+```bash
+# Run all tests once
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## 📚 Project Constitution
+
+For architectural decisions, coding standards, and strict project constraints, strictly adhere to **[GEMINI.md](./GEMINI.md)**.
