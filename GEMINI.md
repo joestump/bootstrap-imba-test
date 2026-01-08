@@ -194,6 +194,10 @@ This means:
 | 2026-01-08 | Vitest configured for Imba                 | Configured `vitest.config.mjs` with Imba plugin, `tests/` folder structure |
 | 2026-01-08 | `TestCase` helper with `actingAs`          | Test helper for auth mocking in `tests/TestCase.imba` |
 | 2026-01-08 | `UserFactory` test helper                  | Factory for creating mock users in tests |
+| 2026-01-08 | `LoginPage.imba` frontend view             | Modern login page with Local + SSO support using Imba native CSS |
+| 2026-01-08 | `Dashboard.imba` frontend view             | Protected dashboard with user info and stats cards using Imba native CSS |
+| 2026-01-08 | Server-side `/dashboard` protection        | `/dashboard` route protected with `passport` middleware in `web.imba` |
+| 2026-01-08 | Gradient-based UI theme                    | Primary gradient: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` |
 
 ---
 
@@ -439,6 +443,104 @@ UserFactory.reset!
 2. **Imports:** Always include `.imba` extension when importing local Imba files
 3. **Reset state:** Call `UserFactory.reset!` in `beforeEach` to ensure clean state
 4. **Async tests:** Use `async/await` for any tests that involve promises
+
+---
+
+## Frontend Views
+
+### Directory Structure
+
+```
+/resources/frontend/
+  App.imba                    # Main SPA entry with Imba Router
+  pages/
+    Welcome.imba              # Landing page
+    Dashboard.imba            # Protected dashboard (requires auth)
+    Auth/
+      LoginPage.imba          # Modern login page (Local + SSO)
+      Login.imba              # Legacy login (kept for compatibility)
+      Register.imba           # Registration page
+      ...
+```
+
+### View Routing
+
+Frontend views are registered in `App.imba` using the `route` attribute:
+
+```imba
+<LoginPage route="/login-page">
+<Dashboard route="/dashboard">
+```
+
+### Design System
+
+#### Color Palette
+
+| Usage              | Value                                               |
+|--------------------|-----------------------------------------------------|
+| **Primary Gradient** | `linear-gradient(135deg, #667eea 0%, #764ba2 100%)` |
+| **Success**        | `#10b981`                                           |
+| **Warning**        | `#f59e0b`                                           |
+| **Error/Danger**   | `#dc2626`, `#ef4444`                                |
+| **Text Primary**   | `#1f2937`, `#374151`                                |
+| **Text Muted**     | `#6b7280`, `#9ca3af`                                |
+| **Background**     | `#f3f4f6`, `white`                                  |
+| **Border**         | `#d1d5db`, `#e5e7eb`                                |
+
+#### Common CSS Patterns
+
+Use these Imba native CSS patterns for consistency:
+
+```imba
+# Card component pattern
+.card
+    background: white
+    border-radius: 12px
+    padding: 1.5rem
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1)
+
+# Primary button pattern
+.btn-primary
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)
+    color: white
+    padding: 0.875rem 1.5rem
+    border-radius: 8px
+    font-weight: 600
+    border: none
+    cursor: pointer
+
+# Form input pattern
+input
+    padding: 0.75rem 1rem
+    border: 1px solid #d1d5db
+    border-radius: 8px
+    font-size: 1rem
+    outline: none
+
+    &:focus
+        border-color: #667eea
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15)
+```
+
+### Protected Views
+
+Views that require authentication should:
+
+1. **Server-side:** Be protected with `passport` middleware in `routes/web.imba`
+2. **Client-side:** Check `user` prop and redirect if not authenticated
+
+```imba
+# Server-side protection (routes/web.imba)
+Route.group { middleware: ['passport'] }, do
+    Route.get('/dashboard', do(request\Request)
+        render-app(request)
+    )
+
+# Client-side check (in the view component)
+def routed
+    unless user
+        globalThis.location.assign('/login-page')
+```
 
 ---
 
