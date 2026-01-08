@@ -76,6 +76,54 @@ Client-side routes are handled by **Imba Router** and are responsible for:
 
 ---
 
+## Data Conventions
+
+### Authentication Provider Schema
+
+The `users` table supports multiple authentication providers through the following fields:
+
+| Field               | Type     | Description                                      |
+|---------------------|----------|--------------------------------------------------|
+| `auth_provider`     | string   | Authentication method identifier (see below)     |
+| `auth_provider_id`  | string?  | External provider's unique ID (nullable)         |
+| `password`          | string?  | Hashed password (nullable, only for `local`)     |
+
+#### `auth_provider` Values
+
+Use **simple lowercase strings** for the `auth_provider` field. Do NOT include vendor names or suffixes.
+
+| Value    | Description                          | `auth_provider_id` Usage                |
+|----------|--------------------------------------|-----------------------------------------|
+| `local`  | Username/password authentication     | `null` (not used)                       |
+| `oidc`   | OpenID Connect (any OIDC provider)   | OIDC `sub` claim from ID token          |
+| `ldap`   | LDAP/Active Directory                | Distinguished Name (DN) or unique UID   |
+
+**Examples:**
+```
+# ✅ Correct
+auth_provider: 'local'
+auth_provider: 'oidc'
+auth_provider: 'ldap'
+
+# ❌ Incorrect — Do NOT use vendor-specific names
+auth_provider: 'google-oidc'
+auth_provider: 'azure-ad'
+auth_provider: 'okta'
+```
+
+> **Rationale:** Keeping `auth_provider` generic allows the same user record to work across OIDC provider changes (e.g., migrating from Okta to Auth0) without data migration. Vendor-specific metadata should be stored elsewhere if needed.
+
+#### Uniqueness Constraints
+
+- `email` is unique across the entire table
+- `(auth_provider, auth_provider_id)` is unique (composite constraint)
+
+This means:
+- A user cannot have the same email with different auth providers
+- The same external identity cannot be linked to multiple user records
+
+---
+
 ## Coding Standards
 
 ### Imba-Specific Standards
@@ -136,6 +184,9 @@ Client-side routes are handled by **Imba Router** and are responsible for:
 | *(init)*   | Adopt Formidable + Imba full-stack    | Unified language for client and server   |
 | *(init)*   | SQLite for local development          | Zero-config, portable database           |
 | *(init)*   | Vitest for testing                    | Fast, ESM-native, Vite-compatible        |
+| 2026-01-08 | Multi-auth `users` table schema       | Flexible user table supporting Local, OIDC, and LDAP via `auth_provider` field |
+| 2026-01-08 | Generic `auth_provider` values        | Use `'local'`, `'oidc'`, `'ldap'` — NOT vendor-specific names like `'google-oidc'` |
+| 2026-01-08 | `UserRepository` with auth helpers    | Repository methods for multi-provider user lookups and creation |
 
 ---
 
@@ -157,4 +208,4 @@ Client-side routes are handled by **Imba Router** and are responsible for:
 
 ---
 
-*Last Updated: Document Creation*
+*Last Updated: 2026-01-08*
