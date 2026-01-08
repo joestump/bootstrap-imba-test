@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+const { Console } = require('@formidablejs/framework');
+
+/**
+ * --------------------------------------------------------------------------
+ * Run The Craftsman Application
+ * --------------------------------------------------------------------------
+ *
+ * When running the console application, Formidable will attempt to load the
+ * console.imba script from the bootstrap directory. This script will be ran
+ * using the "ImbaR" runtime. Both the runtime and console script can be
+ * changed by providing the paths to the runtime and console scripts in the
+ * "make" function.
+ *
+ * You may notice that running the console application is very slow. This is
+ * because the console application is being compiled on the fly. To speed up
+ * things, you can run the "build" script to pre-compile. You can then set
+ * "prod" to "true" in the "run" function.
+ *
+ * @example
+ * 		# When running compiled console application You may then pass
+ * 		# the "--MODE=production" flag.
+ * 		$ node craftsman --MODE=production
+ */
+
+Console.make().run({ prod: Console.mode(['production']) });
