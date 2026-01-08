@@ -191,6 +191,9 @@ This means:
 | 2026-01-08 | `AuthController` added                | Controller handling login, logout, and callbacks for all auth strategies |
 | 2026-01-08 | Auth routes in `/routes/auth.imba`    | Dedicated route file for authentication endpoints |
 | 2026-01-08 | Added passport-local, passport-openidconnect, passport-ldapauth | NPM packages for auth strategies |
+| 2026-01-08 | Vitest configured for Imba                 | Configured `vitest.config.mjs` with Imba plugin, `tests/` folder structure |
+| 2026-01-08 | `TestCase` helper with `actingAs`          | Test helper for auth mocking in `tests/TestCase.imba` |
+| 2026-01-08 | `UserFactory` test helper                  | Factory for creating mock users in tests |
 
 ---
 
@@ -323,6 +326,119 @@ Route.group { middleware: ['passport'] }, do
 - **Authenticated:** Proceeds to the route handler
 - **Unauthenticated API request:** Returns `401 JSON` response
 - **Unauthenticated browser request:** Redirects to `AUTH_LOGIN_REDIRECT` (default: `/auth/login`)
+
+---
+
+## Testing
+
+### Running Tests
+
+Run all tests with:
+```bash
+npm test
+```
+
+Run tests in watch mode during development:
+```bash
+npm run test:watch
+```
+
+### Test Directory Structure
+
+```
+/tests/
+  setup.imba           # Global test setup (runs before all tests)
+  TestCase.imba        # Test helper with actingAs, HTTP helpers
+  Feature/             # Feature/integration tests
+    AuthTest.test.imba # Authentication tests
+```
+
+### Writing Tests
+
+Tests are written in Imba using Vitest. All test files must use the `.test.imba` extension.
+
+**Basic Test Structure:**
+```imba
+import { describe, it, expect, beforeEach } from 'vitest'
+import { UserFactory } from '../TestCase.imba'
+
+describe 'My Feature', do
+    beforeEach do
+        UserFactory.reset!
+
+    it 'does something', do
+        const user = UserFactory.createLocal!
+        expect(user.auth_provider).toBe('local')
+```
+
+### Using the `actingAs` Helper
+
+The `TestCase` helper provides an `actingAs` method for mocking authenticated users in tests.
+
+**Usage:**
+```imba
+import { TestCase, UserFactory } from '../TestCase.imba'
+
+describe 'Protected Routes', do
+    const tc = new TestCase
+
+    beforeAll do await tc.setup!
+    afterAll do await tc.teardown!
+    beforeEach do tc.reset!
+
+    it 'allows authenticated users', do
+        # Mock authentication as a local user
+        tc.actingAs({
+            id: 1
+            email: 'admin@example.com'
+            name: 'Admin User'
+        })
+
+        const res = await tc.get('/dashboard')
+        expect(res.status).toBe(200)
+
+    it 'allows OIDC users', do
+        # Mock authentication as an OIDC user
+        tc.actingAs({
+            id: 2
+            email: 'oidc@example.com'
+            name: 'OIDC User'
+            auth_provider: 'oidc'
+            auth_provider_id: 'oidc-sub-12345'
+        })
+
+        const res = await tc.get('/protected')
+        expect(res.status).toBe(200)
+```
+
+### Using `UserFactory`
+
+The `UserFactory` creates mock user objects for testing. It supports all three auth providers:
+
+```imba
+import { UserFactory } from '../TestCase.imba'
+
+# Create a local user
+const local-user = UserFactory.createLocal!
+const local-user-custom = UserFactory.createLocal({ email: 'custom@test.com' })
+
+# Create an OIDC user
+const oidc-user = UserFactory.createOidc!
+const oidc-user-custom = UserFactory.createOidc({ auth_provider_id: 'google|123' })
+
+# Create an LDAP user
+const ldap-user = UserFactory.createLdap!
+
+# Reset counter between tests
+UserFactory.reset!
+```
+
+### Test Conventions
+
+1. **File naming:** Use `*.test.imba` suffix for all test files
+2. **Imports:** Always include `.imba` extension when importing local Imba files
+3. **Reset state:** Call `UserFactory.reset!` in `beforeEach` to ensure clean state
+4. **Async tests:** Use `async/await` for any tests that involve promises
 
 ---
 
